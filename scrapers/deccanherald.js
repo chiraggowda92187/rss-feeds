@@ -8,33 +8,73 @@ export default {
   },
 
   sources: [
-    { url: "https://www.deccanherald.com/top-karnataka-news", category: "Karnataka", pages: 2 },
-    { url: "https://www.deccanherald.com/india/karnataka/bengaluru", category: "Bengaluru", pages: 2 },
-    { url: "https://www.deccanherald.com/top-bengaluru-news", category: "Bengaluru", pages: 2 },
+    {
+      url: "https://www.deccanherald.com/karnataka-latest-news",
+      category: "Karnataka - Latest",
+      pages: 3,
+    },
+    {
+      url: "https://www.deccanherald.com/top-karnataka-news",
+      category: "Karnataka - Top",
+      pages: 2,
+    },
+    {
+      url: "https://www.deccanherald.com/india/karnataka/bengaluru",
+      category: "Bengaluru",
+      pages: 2,
+    },
+    {
+      url: "https://www.deccanherald.com/top-bengaluru-news",
+      category: "Bengaluru - Top",
+      pages: 2,
+    },
   ],
 
   async scrape(page) {
     const allArticles = [];
-    const seenUrls = new Set(); // within-run dedup only
+    const seenUrls = new Set();
 
     for (const source of this.sources) {
       for (let pageNum = 1; pageNum <= source.pages; pageNum++) {
-        // DH uses ?page=N for pagination
         const url = pageNum === 1 ? source.url : `${source.url}?page=${pageNum}`;
         console.log(`    Fetching [${source.category}] page ${pageNum}: ${url}`);
 
         try {
           await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
 
+          // Wait for the main content grid to render (not footer)
           await page
-            .waitForSelector("a[href*='/india/karnataka'], a[href*='/bengaluru']", { timeout: 15000 })
+            .waitForSelector("main a[href], article a[href], .listing a[href], [class*='story'] a[href], [class*='card'] a[href]", {
+              timeout: 20000,
+            })
             .catch(() => {});
 
           const articles = await page.evaluate((sourceCategory) => {
             const results = [];
-            const anchors = document.querySelectorAll("a[href]");
+
+            // ── Exclude footer and sidebar entirely ──────────────────────────
+            // Remove footer, nav, sidebar from consideration so we only
+            // scrape the main article grid/list on the page
+            const excluded = new Set();
+            for (const el of document.querySelectorAll("footer, nav, [class*='footer'], [class*='sidebar'], [class*='widget'], [class*='trending'], [class*='brewing'], [class*='explainer']")) {
+              for (const a of el.querySelectorAll("a")) {
+                excluded.add(a);
+              }
+            }
+
+            // ── Prefer main content container if it exists ───────────────────
+            const container =
+              document.querySelector("main") ||
+              document.querySelector("[class*='listing']") ||
+              document.querySelector("[class*='content']") ||
+              document.body;
+
+            const anchors = container.querySelectorAll("a[href]");
 
             for (const a of anchors) {
+              // Skip anything inside footer/nav/sidebar
+              if (excluded.has(a)) continue;
+
               const href = a.href;
               const title = a.innerText?.trim();
 
@@ -44,14 +84,16 @@ export default {
                 title.length < 15
               ) continue;
 
+              // Skip section/utility pages
               if (
-                href.match(/\/(tag|author|search|video|photos|epaper|newsletter|brandspot)\//i) ||
-                href.match(/\/(top-karnataka-news|top-bengaluru-news|bengaluru-latest-news|top-india-news|latest-news)\/?(\?.*)?$/) ||
-                href === "https://www.deccanherald.com/"
+                href.match(/\/(tag|author|search|video|photos|epaper|newsletter|brandspot|most-brewing|news-shots|newsletters)\//i) ||
+                href.match(/\/(top-karnataka-news|top-bengaluru-news|karnataka-latest-news|top-india-news|latest-news|top-sports-news|top-business-news|top-opinion-news|top-videos-today|top-news-photos|top-news-entertainment-today|dh-specials|assembly-elections-2026)\/?(\?.*)?$/) ||
+                href === "https://www.deccanherald.com/" ||
+                href.match(/\/(india|karnataka|bengaluru|world|sports|entertainment|technology|health|education|lifestyle|opinion|explainers|india-south|india-north|india-west|india-east-north-east)\/?$/)
               ) continue;
 
-              // Article URLs have a numeric ID at the end e.g. /some-slug-1234567
-              if (!href.match(/-\d{5,}$/)) continue;
+              // Article URLs always end with a 6-7 digit numeric ID
+              if (!href.match(/-\d{6,7}$/)) continue;
 
               const parent =
                 a.closest("article, li, div[class*='card'], div[class*='story'], div[class*='item']") ||
@@ -62,12 +104,12 @@ export default {
 
               results.push({ title, url: href, date: dateStr, category: sourceCategory });
 
-              if (results.length >= 40) break;
+              if (results.length >= 50) break;
             }
+
             return results;
           }, source.category);
 
-          // Within-run dedup
           for (const article of articles) {
             if (!seenUrls.has(article.url)) {
               seenUrls.add(article.url);
@@ -76,8 +118,6 @@ export default {
           }
 
           console.log(`    → ${articles.length} articles found`);
-
-          // Polite delay between pages
           await page.waitForTimeout(1500);
 
         } catch (err) {
