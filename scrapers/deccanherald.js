@@ -36,7 +36,7 @@ export default {
 
     for (const source of this.sources) {
       for (let pageNum = 1; pageNum <= source.pages; pageNum++) {
-        const url = pageNum === 1 ? source.url : `${source.url}?page=${pageNum}`;
+        const url = pageNum === 1 ? source.url : `${source.url}/${pageNum}`;
         console.log(`    Fetching [${source.category}] page ${pageNum}: ${url}`);
 
         try {
