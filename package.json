@@ -1,0 +1,14 @@
+{
+  "name": "rss-scraper",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Playwright-based RSS scraper for JS-heavy news sites",
+  "scripts": {
+    "scrape": "node scrape.js",
+    "install-browsers": "playwright install chromium"
+  },
+  "dependencies": {
+    "feed": "^4.2.2",
+    "playwright": "^1.44.0"
+  }
+}
