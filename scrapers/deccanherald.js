@@ -8,26 +8,10 @@ export default {
   },
 
   sources: [
-    {
-      url: "https://www.deccanherald.com/karnataka-latest-news",
-      category: "Karnataka - Latest",
-      pages: 3,
-    },
-    {
-      url: "https://www.deccanherald.com/top-karnataka-news",
-      category: "Karnataka - Top",
-      pages: 2,
-    },
-    {
-      url: "https://www.deccanherald.com/india/karnataka/bengaluru",
-      category: "Bengaluru",
-      pages: 2,
-    },
-    {
-      url: "https://www.deccanherald.com/top-bengaluru-news",
-      category: "Bengaluru - Top",
-      pages: 2,
-    },
+    { url: "https://www.deccanherald.com/karnataka-latest-news", category: "Karnataka - Latest", pages: 3 },
+    { url: "https://www.deccanherald.com/top-karnataka-news",    category: "Karnataka - Top",    pages: 1 },
+    { url: "https://www.deccanherald.com/india/karnataka/bengaluru", category: "Bengaluru",      pages: 2 },
+    { url: "https://www.deccanherald.com/top-bengaluru-news",    category: "Bengaluru - Top",    pages: 1 },
   ],
 
   async scrape(page) {
@@ -40,29 +24,30 @@ export default {
         console.log(`    Fetching [${source.category}] page ${pageNum}: ${url}`);
 
         try {
-          await page.goto(url, { waitUntil: "networkidle", timeout: 30000 });
+          // domcontentloaded is far more reliable than networkidle on JS-heavy sites.
+          // networkidle never fires if the page keeps background-polling (DH does this).
+          await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
 
-          // Wait for the main content grid to render (not footer)
+          // Give JS time to render the article grid
+          await page.waitForTimeout(4000);
+
+          // Then wait for any internal link to confirm render is done
           await page
-            .waitForSelector("main a[href], article a[href], .listing a[href], [class*='story'] a[href], [class*='card'] a[href]", {
-              timeout: 20000,
-            })
+            .waitForSelector("a[href*='deccanherald.com']", { timeout: 10000 })
             .catch(() => {});
 
           const articles = await page.evaluate((sourceCategory) => {
             const results = [];
 
-            // ── Exclude footer and sidebar entirely ──────────────────────────
-            // Remove footer, nav, sidebar from consideration so we only
-            // scrape the main article grid/list on the page
+            // ── Exclude footer, nav, sidebar ─────────────────────────────────
             const excluded = new Set();
-            for (const el of document.querySelectorAll("footer, nav, [class*='footer'], [class*='sidebar'], [class*='widget'], [class*='trending'], [class*='brewing'], [class*='explainer']")) {
-              for (const a of el.querySelectorAll("a")) {
-                excluded.add(a);
-              }
+            for (const el of document.querySelectorAll(
+              "footer, nav, header, [class*='footer'], [class*='sidebar'], [class*='widget'], [class*='trending'], [class*='brewing'], [class*='explainer'], [class*='header']"
+            )) {
+              for (const a of el.querySelectorAll("a")) excluded.add(a);
             }
 
-            // ── Prefer main content container if it exists ───────────────────
+            // ── Scope to main content area ────────────────────────────────────
             const container =
               document.querySelector("main") ||
               document.querySelector("[class*='listing']") ||
@@ -72,7 +57,6 @@ export default {
             const anchors = container.querySelectorAll("a[href]");
 
             for (const a of anchors) {
-              // Skip anything inside footer/nav/sidebar
               if (excluded.has(a)) continue;
 
               const href = a.href;
@@ -92,7 +76,7 @@ export default {
                 href.match(/\/(india|karnataka|bengaluru|world|sports|entertainment|technology|health|education|lifestyle|opinion|explainers|india-south|india-north|india-west|india-east-north-east)\/?$/)
               ) continue;
 
-              // Article URLs always end with a 6-7 digit numeric ID
+              // Article URLs end with 6-7 digit numeric ID e.g. slug-3964987
               if (!href.match(/-\d{6,7}$/)) continue;
 
               const parent =
