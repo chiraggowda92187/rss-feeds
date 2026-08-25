@@ -4,16 +4,22 @@
         <title>Deccan Herald – Karnataka &amp; Bengaluru</title>
         <link>https://www.deccanherald.com</link>
         <description>Karnataka and Bengaluru news from Deccan Herald</description>
-        <lastBuildDate>Tue, 25 Aug 2026 04:43:03 GMT</lastBuildDate>
+        <lastBuildDate>Tue, 25 Aug 2026 05:35:54 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>rss-scraper</generator>
         <language>en</language>
+        <item>
+            <title><![CDATA[David D'Souza murder case: Multi-crore project behind Udupi Congress leader's killing?]]></title>
+            <link>https://www.deccanherald.com/india/karnataka/mangaluru/david-dsouza-murder-case-multi-crore-project-behind-udupi-congress-leaders-killing-4123137</link>
+            <guid>https://www.deccanherald.com/india/karnataka/mangaluru/david-dsouza-murder-case-multi-crore-project-behind-udupi-congress-leaders-killing-4123137</guid>
+            <pubDate>Tue, 25 Aug 2026 05:35:54 GMT</pubDate>
+            <category>Karnataka - Latest</category>
+        </item>
         <item>
             <title><![CDATA[Rahul Gandhi unfit to live in Bharat: Union Minister V Somanna]]></title>
             <link>https://www.deccanherald.com/india/karnataka/rahul-gandhi-unfit-to-live-in-bharat-union-minister-v-somanna-4123077</link>
             <guid>https://www.deccanherald.com/india/karnataka/rahul-gandhi-unfit-to-live-in-bharat-union-minister-v-somanna-4123077</guid>
             <pubDate>Tue, 25 Aug 2026 04:43:03 GMT</pubDate>
-            <category>Karnataka - Latest</category>
         </item>
         <item>
             <title><![CDATA[When the pipes don’t reach: How Bengaluru’s luxury homes are building their own wastewater systems]]></title>
@@ -602,12 +608,6 @@
             <link>https://www.deccanherald.com/india/karnataka/industrialist-gautam-adani-meets-karnataka-cm-shivakumar-bjp-flays-cong-on-its-double-standard-4121219</link>
             <guid>https://www.deccanherald.com/india/karnataka/industrialist-gautam-adani-meets-karnataka-cm-shivakumar-bjp-flays-cong-on-its-double-standard-4121219</guid>
             <pubDate>Sun, 23 Aug 2026 14:28:12 GMT</pubDate>
-        </item>
-        <item>
-            <title><![CDATA[Pharmacy owner hacked to death in public in Bengaluru's Madiwala]]></title>
-            <link>https://www.deccanherald.com/india/karnataka/bengaluru/pharmacy-owner-hacked-to-death-in-public-in-bengalurus-madiwala-4121416</link>
-            <guid>https://www.deccanherald.com/india/karnataka/bengaluru/pharmacy-owner-hacked-to-death-in-public-in-bengalurus-madiwala-4121416</guid>
-            <pubDate>Sun, 23 Aug 2026 13:35:24 GMT</pubDate>
         </item>
     </channel>
 </rss>
